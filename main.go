@@ -15,6 +15,7 @@ import (
 )
 
 type portScanner struct {
+	protocol string
 	hostname string
 	lock     *semaphore.Weighted
 }
@@ -90,12 +91,18 @@ func main() {
 	// Defining CLI Flags
 	protoPTR := flag.String("protocol", "tcp", "Set the protocol you want, TCP or UDP.")
 	hostPTR := flag.String("hostname", "localhost", "Set the hostname you want to connect to.")
-	portPtr := flag.Int("port", 80, "Set the port to scan.")
-	timeoutPTR := flag.Duration("timeout", 50, "Set the timout, lower is better but too low would make any port seem closed.")
+	//portPtr := flag.Int("port", 80, "Set the port to scan.")
+	//timeoutPTR := flag.Duration("timeout", 50, "Set the timout, lower is better but too low would make any port seem closed.")
 
 	// Parse Flags
 	flag.Parse()
 
-	scanPort(*protoPTR, *hostPTR, *portPtr, *timeoutPTR)
+	//scanPort(*protoPTR, *hostPTR, *portPtr, *timeoutPTR)
 
+	ps := &portScanner{
+		protocol: *protoPTR,
+		hostname: *hostPTR,
+		lock:     semaphore.NewWeighted(Ulimit()),
+	}
+	ps.Start("tcp", 1, 65535, 500*time.Millisecond)
 }
