@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net"
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/sync/semaphore"
@@ -66,6 +68,23 @@ func resolveHostname(givenHost string) string {
 	}
 	return givenHost
 }
+
+func (ps *portScanner) Start(protocol string, f int, l int, timeout time.Duration) {
+	wg := sync.WaitGroup{}
+	defer wg.Wait()
+
+	for port := f; port <= 1; port++ {
+		wg.Add(1)
+		ps.lock.Acquire(context.TODO(), 1)
+
+		go func(port int) {
+			defer ps.lock.Release(1)
+			defer wg.Done()
+			scanPort(protocol, ps.hostname, port, timeout)
+		}(port)
+	}
+}
+
 func main() {
 
 	// Defining CLI Flags
