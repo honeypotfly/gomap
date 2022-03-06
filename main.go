@@ -20,6 +20,15 @@ func scanPort(protocol string, hostname string, port int, maxTimeout time.Durati
 	return true
 }
 
+func resolveHostname(givenHost string) string {
+	addr, err := net.LookupHost(givenHost)
+	fmt.Printf("%v\n", len(addr))
+
+	if err != nil || len(addr) < 1 {
+		fmt.Printf("%v\n", addr)
+	}
+	return givenHost
+}
 func main() {
 
 	// Defining CLI Flags
@@ -30,6 +39,9 @@ func main() {
 
 	// Parse Flags
 	flag.Parse()
+
+	resolveHostname(*hostPTR)
+
 	open := scanPort(*protoPTR, *hostPTR, *portPtr, *timeoutPtr)
 	open2 := scanPort(*protoPTR, *hostPTR, 40, *timeoutPtr)
 
