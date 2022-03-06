@@ -21,7 +21,7 @@ type portScanner struct {
 }
 
 func Ulimit() int64 {
-	out, err := exec.Command("ulimit", "-n").Output()
+	out, err := exec.Command("/bin/bash", "-c", "ulimit -n").Output()
 
 	if err != nil {
 		panic(err)
@@ -74,7 +74,7 @@ func (ps *portScanner) Start(protocol string, f int, l int, timeout time.Duratio
 	wg := sync.WaitGroup{}
 	defer wg.Wait()
 
-	for port := f; port <= 1; port++ {
+	for port := f; port <= l; port++ {
 		wg.Add(1)
 		ps.lock.Acquire(context.TODO(), 1)
 
