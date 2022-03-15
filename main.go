@@ -42,13 +42,10 @@ func ScanPort(myProto string, hostname string, port int, maxTimeout time.Duratio
 	conn, err := net.DialTimeout(myProto, address, maxTimeout)
 
 	if err != nil {
-		//fmt.Println(err)
 		if strings.Contains(err.Error(), "too many open files") {
 			time.Sleep(maxTimeout)
 			// If we open too many files, sleep and restart the scan
 			ScanPort(myProto, hostname, port, maxTimeout)
-		} else {
-			//fmt.Println(port, "closed")
 		}
 		return
 	}
