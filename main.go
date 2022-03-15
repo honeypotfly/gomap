@@ -39,18 +39,14 @@ func Ulimit() int64 {
 
 func scanPort(protocol string, hostname string, port int, maxTimeout time.Duration) bool {
 	address := fmt.Sprintf("%s:%d", hostname, port)
-	fmt.Println(address)
 
 	conn, err := net.DialTimeout(protocol, address, maxTimeout*time.Millisecond)
-	fmt.Println(conn)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "too many open files") {
 			time.Sleep(maxTimeout)
 			// If we open too many files, sleep and restart the scan
 			scanPort(protocol, hostname, port, maxTimeout*time.Second)
-		} else {
-			fmt.Println(address, "is closed")
 		}
 		return false
 	}
@@ -104,5 +100,5 @@ func main() {
 		hostname: *hostPTR,
 		lock:     semaphore.NewWeighted(Ulimit()),
 	}
-	ps.Start("tcp", 1, 65535, 500*time.Millisecond)
+	ps.Start("tcp", 1, 65535, 50*time.Millisecond)
 }
