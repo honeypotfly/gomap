@@ -27,7 +27,7 @@ func Ulimit() int64 {
 		panic(err)
 	}
 
-	var s string = strings.TrimSpace(string(out))
+	s := strings.TrimSpace(string(out))
 	i, err := strconv.ParseInt(s, 10, 64)
 
 	if err != nil {
@@ -37,33 +37,25 @@ func Ulimit() int64 {
 	return i
 }
 
-func scanPort(protocol string, hostname string, port int, maxTimeout time.Duration) bool {
+func scanPort(protocol string, hostname string, port int, maxTimeout time.Duration) {
 	address := fmt.Sprintf("%s:%d", hostname, port)
 
 	conn, err := net.DialTimeout(protocol, address, maxTimeout*time.Millisecond)
 
 	if err != nil {
+		fmt.Println(err)
 		if strings.Contains(err.Error(), "too many open files") {
 			time.Sleep(maxTimeout)
 			// If we open too many files, sleep and restart the scan
-			scanPort(protocol, hostname, port, maxTimeout*time.Second)
+			scanPort(protocol, hostname, port, maxTimeout)
+		} else {
+			//fmt.Println(port, "closed")
 		}
-		return false
+		return
 	}
 
-	defer conn.Close()
+	conn.Close()
 	println(address, " is open")
-	return true
-}
-
-func resolveHostname(givenHost string) string {
-	addr, err := net.LookupHost(givenHost)
-	fmt.Printf("%v\n", (addr))
-
-	if err != nil || len(addr) < 1 {
-		fmt.Printf("%v\n", addr)
-	}
-	return givenHost
 }
 
 func (ps *portScanner) Start(protocol string, f int, l int, timeout time.Duration) {
@@ -71,8 +63,8 @@ func (ps *portScanner) Start(protocol string, f int, l int, timeout time.Duratio
 	defer wg.Wait()
 
 	for port := f; port <= l; port++ {
-		wg.Add(1)
 		ps.lock.Acquire(context.TODO(), 1)
+		wg.Add(1)
 
 		go func(port int) {
 			defer ps.lock.Release(1)
@@ -100,5 +92,5 @@ func main() {
 		hostname: *hostPTR,
 		lock:     semaphore.NewWeighted(Ulimit()),
 	}
-	ps.Start("tcp", 1, 65535, 50*time.Millisecond)
+	ps.Start("tcp", 1, 65535, 500*time.Millisecond)
 }
